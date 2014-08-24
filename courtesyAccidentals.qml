@@ -28,6 +28,105 @@ MuseScore {
       // configuration
       property bool useBracket: false
 
+      // Dialog window
+
+      pluginType: "dialog"
+      
+      width: 350
+      height: 150
+
+      Text {
+            id: titletext
+            height: 40
+            width: parent.width
+            anchors.top: parent.top
+            anchors.left: parent.left
+            font.italic: true
+            font.bold: true
+            font.pixelSize: 20
+            horizontalAlignment: Text.AlignHCenter
+            verticalAlignment: Text.AlignVCenter
+            text: "Courtesy Accidentals v0.1"
+      }
+
+       Row {     
+            id: optionsRow
+            anchors.top: titletext.bottom
+            anchors.left: parent.left
+            anchors.margins: 10
+            spacing: 20
+            width: parent.width
+            height: 110
+
+            Text {
+                  id: selecttext
+                  height: parent.height - parent.spacing
+                  //width: 50
+                  verticalAlignment: Text.AlignVCenter
+                  text: "Select action:"
+            }
+
+            Column {
+                  id: actionCol
+                  spacing: 10
+
+                  MouseArea {
+                        width: rect1.width
+                        height: rect1.height
+                        onClicked: {addAcc();}
+
+                        Rectangle {
+                              id: rect1
+                              width: opt1.contentWidth +10
+                              height: opt1.contentHeight +10
+                              border.width: 2
+                              border.color: "black"
+
+                              Text {
+                                    id: opt1
+                                    anchors.fill: parent
+                                    horizontalAlignment: Text.AlignHCenter
+                                    verticalAlignment: Text.AlignVCenter
+                                    text: "Add courtesy accidentals"
+                              }
+                        }
+                  }
+
+                  MouseArea {
+                        width: opt2.contentWidth
+                        height: opt2.contentHeight
+                        onClicked: {console.log("NOT IMPLEMENTED: opt2");}
+
+                        Text {
+                              id: opt2
+                              text: "Remove courtesy accidentals"
+                        }
+                  }
+
+                  MouseArea {
+                        width: rect3.width
+                        height: rect3.height
+                        onClicked: {Qt.quit();}
+
+                        Rectangle {
+                              id: rect3
+                              width: opt3.contentWidth +10
+                              height: opt3.contentHeight +10
+                              border.width: 2
+                              border.color: "black"
+
+                              Text {
+                                    id: opt3
+                                    anchors.fill: parent
+                                    horizontalAlignment: Text.AlignHCenter
+                                    verticalAlignment: Text.AlignVCenter
+                                    text: "Cancel"
+                              }
+                        }
+                  }
+            }
+      }
+
       // if nothing is selected process whole score
       property bool processAll: false
 
@@ -143,9 +242,9 @@ MuseScore {
 
       function processPart(cursor,endTick,startTrack,endTrack) {
             if(processAll) {
-                  // we need to reset staffIdx first, otherwise
+                  // we need to reset track first, otherwise
                   // rewind(0) doesn't work correctly
-                  cursor.staffIdx=0; 
+                  cursor.track=0; 
                   cursor.rewind(0);
             } else {
                   cursor.rewind(1);
@@ -198,8 +297,10 @@ MuseScore {
             }
       }
 
-      onRun: {
-            console.log("start courtesyAccidentals");
+      function addAcc() {
+            console.log("start add courtesy accidentals");
+
+            curScore.startCmd();
 
              if (typeof curScore === 'undefined' || curScore == null) {
                    console.log("error: no score!");	     
@@ -213,7 +314,6 @@ MuseScore {
             cursor.rewind(2);
             var endStaff = cursor.staffIdx+1;
             var endTick = cursor.tick;
-            cursor.rewind(1);
 
             if(!cursor.segment) {
                   // no selection
@@ -221,10 +321,11 @@ MuseScore {
                   processAll = true;
                   startStaff=0;
                   endStaff=curScore.nstaves;
-            } else if(endTick == 0) {
+            } 
+            //else if(endTick == 0) {
                   // select All doesn't seem to work right now:
-                  processAll = true;
-            }
+            //      processAll = true;
+            //}
 
             console.log("Selection is: Staves("+startStaff+"-"+endStaff+") Ticks("+cursor.tick+"-"+endTick+")");
             console.log("ProcessAll is "+processAll);
@@ -249,7 +350,13 @@ MuseScore {
                   curStartStaff = curEndStaff;
             }
 
-            console.log("end courtesyAccidentals");
+            curScore.endCmd();
+            curScore.doLayout();
+
+            console.log("end add courtesy accidentals");
             Qt.quit();
+      }
+
+      onRun: { 
       }
 }
