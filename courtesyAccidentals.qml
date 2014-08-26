@@ -30,8 +30,9 @@ MuseScore {
 
       // Dialog window
 
-      pluginType: "dialog"
-      
+      pluginType: "dock"
+      //dockArea: "left"      
+/*
       width: 350
       height: 150
 
@@ -126,7 +127,7 @@ MuseScore {
                   }
             }
       }
-
+*/
       // if nothing is selected process whole score
       property bool processAll: false
 
@@ -358,5 +359,6 @@ MuseScore {
       }
 
       onRun: { 
+            addAcc();
       }
 }
