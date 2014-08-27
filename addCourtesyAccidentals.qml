@@ -1,5 +1,5 @@
 //==============================================
-//  courtesy accidentals v0.1
+//  add courtesy accidentals v0.1
 //
 //  Copyright (C)2012-2014 Jörn Eichler (heuchi) 
 //
@@ -22,8 +22,8 @@ import MuseScore 1.0
 
 MuseScore {
       version: "0.1"
-      description: "This plugin adds and removes courtesy accidentals"
-      menuPath: "Plugins.courtesyAccidentals"
+      description: "This plugin adds courtesy accidentals"
+      menuPath: "Plugins.addCourtesyAccidentals"
 
       // configuration
       property bool useBracket: false
@@ -199,6 +199,8 @@ MuseScore {
             var noteName = tpcName(note.tpc);
             var noteClass = noteName.charAt(0)+octave;
 
+            console.log("processNote called for "+noteClass+":"+noteName);
+
             // remember note for next measure
             curMeasureArray[noteClass]=noteName;
 
@@ -221,6 +223,7 @@ MuseScore {
                               } else {
                                     accidental = Accidental.SHARP2;
                               }
+                              console.log("adding acc for this note");
                               note.accidentalType = accidental;
                               // put bracket on accidental
                               note.accidental.hasBracket = useBracket;
@@ -242,6 +245,8 @@ MuseScore {
       // same octave and for notes of different voices in the same octave
 
       function processPart(cursor,endTick,startTrack,endTrack) {
+            console.log("processPart called:"+startTrack+"-"+endTrack);
+
             if(processAll) {
                   // we need to reset track first, otherwise
                   // rewind(0) doesn't work correctly
@@ -266,9 +271,22 @@ MuseScore {
                   // check if still inside same measure
                   if(!(segment.tick < cursor.tick)) {
                         // new measure
+                        console.log("NEW MEASURE");
                         prevMeasureArray = curMeasureArray;
                         curMeasureArray = new Array();
-                        cursor.nextMeasure();
+                        var cutoff=0;
+                        var oldTick = cursor.tick;
+                        while(oldTick == cursor.tick) {
+                              cursor.nextMeasure();
+                              cutoff++;
+                              if(cutoff>1) {
+                                    console.log("NEXT MEASURE LOOP!");
+                              }
+                              if(cutoff>10) {
+                                    console.log("GIVING UP!");
+                                    break;
+                              }
+                        }
                   }
 
                   for(var track=startTrack; track<endTrack; track++) {
@@ -328,6 +346,7 @@ MuseScore {
             //      processAll = true;
             //}
 
+            cursor.rewind(1);
             console.log("Selection is: Staves("+startStaff+"-"+endStaff+") Ticks("+cursor.tick+"-"+endTick+")");
             console.log("ProcessAll is "+processAll);
 
