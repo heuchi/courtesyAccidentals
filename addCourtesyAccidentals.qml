@@ -267,25 +267,16 @@ MuseScore {
             // we use a segment, because the cursor always proceeds to 
 	    // the next element in the given track and we don't know 
 	    // in which track the element is.
+            var inLastMeasure=false;
             while(segment && (processAll || segment.tick < endTick)) {
                   // check if still inside same measure
-                  if(!(segment.tick < cursor.tick)) {
+                  if(!inLastMeasure && !(segment.tick < cursor.tick)) {
                         // new measure
-                        console.log("NEW MEASURE");
+                        //console.log("NEW MEASURE");
                         prevMeasureArray = curMeasureArray;
                         curMeasureArray = new Array();
-                        var cutoff=0;
-                        var oldTick = cursor.tick;
-                        while(oldTick == cursor.tick) {
-                              cursor.nextMeasure();
-                              cutoff++;
-                              if(cutoff>1) {
-                                    console.log("NEXT MEASURE LOOP!");
-                              }
-                              if(cutoff>10) {
-                                    console.log("GIVING UP!");
-                                    break;
-                              }
+                        if(!cursor.nextMeasure()) {
+                              inLastMeasure=true;
                         }
                   }
 
