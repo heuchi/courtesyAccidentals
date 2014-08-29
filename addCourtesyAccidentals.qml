@@ -274,9 +274,27 @@ MuseScore {
                         }
                   }
 
+                  // we search for key signatures in first voice of
+                  // first staff:
+                  var keySigTrack = startTrack - (startTrack % 4);
+
                   for(var track=startTrack; track<endTrack; track++) {
+                        // check for new key signature
+                        // we only do this for the first track of the first staff
+                        // this means we miss the event of having two different
+                        // key signatures in different staves of the same part
+                        // This remains for future version if needed
+                        // we look inside this loop to make sure we don't miss
+                        // any segments. This could be improved for speed.
+ 
+                        if(segment.elementAt(keySigTrack) && segment.elementAt(keySigTrack).type == Element.KEYSIG) {
+                              //console.log("found KEYSIG");
+                              // just forget the previous measure info 
+                              // to not generate any courtesy accidentals
+                              prevMeasureArray = new Array();
+                        }
+                        // look for notes and grace notes
                         if(segment.elementAt(track) && segment.elementAt(track).type == Element.CHORD) {
-                              
                               // process graceNotes if present
                               if(segment.elementAt(track).graceNotes.length > 0) {
                                     var graceChords = segment.elementAt(track).graceNotes;
