@@ -234,7 +234,7 @@ MuseScore {
       function removeAcc() {
             console.log("start remove courtesy accidentals");
 
-            curScore.startCmd();
+            //curScore.startCmd();
 
              if (typeof curScore === 'undefined' || curScore == null) {
                    console.log("error: no score!");	     
@@ -242,23 +242,32 @@ MuseScore {
              }
 
             // find selection
+            var startStaff;
+            var endStaff;
+            var endTick;
+            
             var cursor = curScore.newCursor();
             cursor.rewind(1);
-            var startStaff = cursor.staffIdx;
-            cursor.rewind(2);
-            var endStaff = cursor.staffIdx+1;
-            var endTick = cursor.tick;
-
             if(!cursor.segment) {
                   // no selection
                   console.log("no selection: processing whole score");
                   processAll = true;
-                  startStaff=0;
-                  endStaff=curScore.nstaves;
-            } 
+                  startStaff = 0;
+                  endStaff = curScore.nstaves;
+            } else {
+                  startStaff = cursor.staffIdx;
+                  cursor.rewind(2);
+                  endStaff = cursor.staffIdx+1;
+                  endTick = cursor.tick;
+                  if(endTick == 0) {
+                        // selection includes end of score
+                        // calculate tick from last score segment
+                        endTick = curScore.lastSegment.tick + 1;
+                  }
+                  cursor.rewind(1);
+                  console.log("Selection is: Staves("+startStaff+"-"+endStaff+") Ticks("+cursor.tick+"-"+endTick+")");
+            }      
 
-            cursor.rewind(1);
-            console.log("Selection is: Staves("+startStaff+"-"+endStaff+") Ticks("+cursor.tick+"-"+endTick+")");
             console.log("ProcessAll is "+processAll);
 
             // go through all staves of a part simultaneously
@@ -277,8 +286,8 @@ MuseScore {
                   curStartStaff = curEndStaff;
             }
 
-            curScore.endCmd();
-            curScore.doLayout();
+            //curScore.endCmd();
+            //curScore.doLayout();
 
             console.log("end remove courtesy accidentals");
             Qt.quit();

@@ -30,7 +30,7 @@ MuseScore {
 
       // Dialog window
 
-      pluginType: "dock"
+      //pluginType: "dock"
       //dockArea: "left"      
 /*
       width: 350
@@ -199,8 +199,6 @@ MuseScore {
             var noteName = tpcName(note.tpc);
             var noteClass = noteName.charAt(0)+octave;
 
-            console.log("processNote called for "+noteClass+":"+noteName);
-
             // remember note for next measure
             curMeasureArray[noteClass]=noteName;
 
@@ -223,7 +221,6 @@ MuseScore {
                               } else {
                                     accidental = Accidental.SHARP2;
                               }
-                              console.log("adding acc for this note");
                               note.accidentalType = accidental;
                               // put bracket on accidental
                               note.accidental.hasBracket = useBracket;
@@ -245,8 +242,6 @@ MuseScore {
       // same octave and for notes of different voices in the same octave
 
       function processPart(cursor,endTick,startTrack,endTrack) {
-            console.log("processPart called:"+startTrack+"-"+endTrack);
-
             if(processAll) {
                   // we need to reset track first, otherwise
                   // rewind(0) doesn't work correctly
@@ -265,14 +260,13 @@ MuseScore {
             var prevMeasureArray = new Array();
 
             // we use a segment, because the cursor always proceeds to 
-	    // the next element in the given track and we don't know 
-	    // in which track the element is.
+            // the next element in the given track and we don't know 
+            // in which track the element is.
             var inLastMeasure=false;
             while(segment && (processAll || segment.tick < endTick)) {
                   // check if still inside same measure
                   if(!inLastMeasure && !(segment.tick < cursor.tick)) {
                         // new measure
-                        //console.log("NEW MEASURE");
                         prevMeasureArray = curMeasureArray;
                         curMeasureArray = new Array();
                         if(!cursor.nextMeasure()) {
@@ -310,7 +304,7 @@ MuseScore {
       function addAcc() {
             console.log("start add courtesy accidentals");
 
-            curScore.startCmd();
+            //curScore.startCmd();
 
              if (typeof curScore === 'undefined' || curScore == null) {
                    console.log("error: no score!");	     
@@ -318,27 +312,32 @@ MuseScore {
              }
 
             // find selection
+            var startStaff;
+            var endStaff;
+            var endTick;
+            
             var cursor = curScore.newCursor();
             cursor.rewind(1);
-            var startStaff = cursor.staffIdx;
-            cursor.rewind(2);
-            var endStaff = cursor.staffIdx+1;
-            var endTick = cursor.tick;
-
             if(!cursor.segment) {
                   // no selection
                   console.log("no selection: processing whole score");
                   processAll = true;
-                  startStaff=0;
-                  endStaff=curScore.nstaves;
-            } 
-            //else if(endTick == 0) {
-                  // select All doesn't seem to work right now:
-            //      processAll = true;
-            //}
+                  startStaff = 0;
+                  endStaff = curScore.nstaves;
+            } else {
+                  startStaff = cursor.staffIdx;
+                  cursor.rewind(2);
+                  endStaff = cursor.staffIdx+1;
+                  endTick = cursor.tick;
+                  if(endTick == 0) {
+                        // selection includes end of score
+                        // calculate tick from last score segment
+                        endTick = curScore.lastSegment.tick + 1;
+                  }
+                  cursor.rewind(1);
+                  console.log("Selection is: Staves("+startStaff+"-"+endStaff+") Ticks("+cursor.tick+"-"+endTick+")");
+            }      
 
-            cursor.rewind(1);
-            console.log("Selection is: Staves("+startStaff+"-"+endStaff+") Ticks("+cursor.tick+"-"+endTick+")");
             console.log("ProcessAll is "+processAll);
 
             // go through all staves of a part simultaneously
@@ -361,8 +360,8 @@ MuseScore {
                   curStartStaff = curEndStaff;
             }
 
-            curScore.endCmd();
-            curScore.doLayout();
+            //curScore.doLayout();
+            //curScore.endCmd();
 
             console.log("end add courtesy accidentals");
             Qt.quit();
