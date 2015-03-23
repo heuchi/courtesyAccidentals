@@ -23,7 +23,7 @@ import MuseScore 1.0
 MuseScore {
       version: "0.1"
       description: "This plugin removes courtesy accidentals"
-      menuPath: "Plugins.removeCourtesyAccidentals"
+      menuPath: "Plugins.Accidentals.Remove Courtesy Accidentals"
 
       //pluginType: "dock"
 
@@ -87,16 +87,16 @@ MuseScore {
 
                         // if pitch changed, we were wrong...
                         if(note.pitch != thisPitch) {
-                              console.log("ERROR: pitch of note changed!");
-                              note.color = "#ff0000";
+                              console.log("ERROR1: pitch of note changed!");
+                              //note.color = "#ff0000";
                               note.accidentalType = thisAcc;
                         }
                   }
                   // if the tied back note is not part of
                   // the current key sig, we need to remeber it.
-                  if( ! (note.tpc > keySig+12 && note.tpc < keySig+20)) {
-                         curMeasureArray[noteClass]=noteName;
-                  }
+                  //if( ! (note.tpc > keySig+12 && note.tpc < keySig+20)) {
+                  //       curMeasureArray[noteClass]=noteName;
+                  //}
 
                   // we're done for a tied back note.
                  return;
@@ -120,8 +120,8 @@ MuseScore {
 
                               // if pitch changed, we were wrong...
                               if(note.pitch != thisPitch) {
-                                    console.log("ERROR: pitch of note changed!");
-                                    note.color = "#ff0000";
+                                    console.log("ERROR2: pitch of note changed!");
+                                    //note.color = "#ff0000";
                                     note.accidentalType = thisAcc;
                               }
                         }
@@ -142,8 +142,8 @@ MuseScore {
 
                               // if pitch changed, we were wrong...
                               if(note.pitch != thisPitch) {
-                                    console.log("ERROR: pitch of note changed!");
-                                    note.color = "#ff0000";
+                                    console.log("ERROR3: pitch of note changed!");
+                                    //note.color = "#ff0000";
                                     note.accidentalType = thisAcc;
                                     console.log("KeySig="+keySig+", tpc="+note.tpc);
                               }

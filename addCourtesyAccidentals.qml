@@ -23,7 +23,7 @@ import MuseScore 1.0
 MuseScore {
       version: "0.1"
       description: "This plugin adds courtesy accidentals"
-      menuPath: "Plugins.addCourtesyAccidentals"
+      menuPath: "Plugins.Accidentals.Add Courtesy Accidentals"
 
       // configuration
       property bool useBracket: false
