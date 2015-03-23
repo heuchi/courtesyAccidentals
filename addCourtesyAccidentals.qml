@@ -286,8 +286,13 @@ MuseScore {
                         // This remains for future version if needed
                         // we look inside this loop to make sure we don't miss
                         // any segments. This could be improved for speed.
+		        // A KeySig that has generated == true was created by
+		        // layout, and is probably at the beginning of a new line
+		        // so we don't need it.
  
-                        if(segment.elementAt(keySigTrack) && segment.elementAt(keySigTrack).type == Element.KEYSIG) {
+                        if(segment.elementAt(keySigTrack) 
+			     && segment.elementAt(keySigTrack).type == Element.KEYSIG
+			     && (!segment.elementAt(keySigTrack).generated)) {
                               //console.log("found KEYSIG");
                               // just forget the previous measure info 
                               // to not generate any courtesy accidentals
