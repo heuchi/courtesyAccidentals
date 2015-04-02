@@ -186,13 +186,15 @@ MuseScore {
 
       function processNote(note,prevMeasureArray,curMeasureArray) {
             var octave=Math.floor(note.pitch/12);
-           
-             // correct octave for Cb and Cbb
-            if(note.tpc == 7 || note.tpc == 0) {
+
+            // use tpc1 instead of tpc for octave correction
+            // since this will also work for transposing instruments
+            // correct octave for Cb and Cbb
+            if(note.tpc1 == 7 || note.tpc1 == 0) {
                   octave++; // belongs to higher octave
             }
             // correct octave for B# and B##
-            if(note.tpc == 26 || note.tpc == 33) {
+            if(note.tpc1 == 26 || note.tpc1 == 33) {
                   octave--; // belongs to lower octave
             }
 
