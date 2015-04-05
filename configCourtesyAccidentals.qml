@@ -198,7 +198,7 @@ MuseScore {
                                           eventTypes |= eventRehearsalMark;
                                     }
                                     if (optEndScore.checked) {
-                                          eventTypes != eventEndScore;
+                                          eventTypes |= eventEndScore;
                                     }
                                     if (!eventTypes) {
                                           // show error: at least one item needs to be selected
@@ -463,10 +463,26 @@ MuseScore {
                         }
                   }
 
+                  // if we find a full measure rest, it needs to be in the whole part
+                  var allTracksFullMeasureRest = true;
+                  var restFound = false;
+
                   // scann music
                   for(var track=startTrack; track<endTrack; track++) {
+                        // check for full measure rest
+                        if (segment.elementAt(track) && segment.elementAt(track).type == Element.REST) {
+                              var rest = segment.elementAt(track);
+                              if (!rest.isFullMeasure) {
+                                    allTracksFullMeasureRest = false; 
+                              } else {
+                                    restFound = true;
+                              }
+                        }
+
                         // look for notes and grace notes
-                        if(segment.elementAt(track) && segment.elementAt(track).type == Element.CHORD) {
+                        if (segment.elementAt(track) && segment.elementAt(track).type == Element.CHORD) {
+                              // not a rest so unset allPartsFullMeasureRest
+                              allTracksFullMeasureRest = false;
                               // process graceNotes if present
                               if(segment.elementAt(track).graceNotes.length > 0) {
                                     var graceChords = segment.elementAt(track).graceNotes;
@@ -485,6 +501,14 @@ MuseScore {
                               for(var i=0;i<notes.length;i++) {
                                     processNote(notes[i],prevMeasureArray,curMeasureArray,curMeasureNum);
                               }
+                        }
+                  }
+
+                  if (restFound && allTracksFullMeasureRest) {
+                        // reset prevMeasureArray if configured to do so
+                        if (operationMode == typeEvent
+                         && (eventTypes & eventFullRest)) {
+                              prevMeasureArray = new Array();
                         }
                   }
                   segment=segment.next;
