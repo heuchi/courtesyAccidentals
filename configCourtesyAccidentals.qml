@@ -216,6 +216,7 @@ MuseScore {
                                     addAcc();
                                     curScore.endCmd();
                               }
+                              Qt.quit();
                         }
                   }
 
@@ -229,6 +230,7 @@ MuseScore {
                         }
                         onClicked: {
                               configDialog.visible = false;
+                              Qt.quit();
                         }
                   }
             }
@@ -337,7 +339,6 @@ MuseScore {
 
             // remember note for next measure
             curMeasureArray[noteClass]=[noteName,curMeasureNum];
-            console.log("added "+noteClass+" = "+noteName+","+curMeasureNum);
 
             if (operationMode == typeDodecaphonic) {
                   addAccidental(note);
@@ -391,30 +392,38 @@ MuseScore {
                   // check for new measure
                   if(segment.elementAt(keySigTrack)
                      && segment.elementAt(keySigTrack).type == Element.BAR_LINE) {
-                       
-                        curMeasureNum++;
-                        if (operationMode == typeNextMeasure) {
-                              prevMeasureArray = curMeasureArray;
-                              curMeasureArray = new Array();
-                        } else if (operationMode == typeNumMeasures) {
-                              // delete all entries that are too old
-                              var toDelete = [];
-                              for (var n in prevMeasureArray) {
-                                    if (curMeasureNum - prevMeasureArray[n][1] > numMeasures) {
-                                          toDelete.push(n);
-                                    }
-                              }
-                              // now delete, otherwise iterating (n in prevMeasureArray) will not work
-                              for (var x = 0; x < toDelete.length; x++)
-                                    delete prevMeasureArray[toDelete[x]];
+                        // if double bar line and in nextEvent mode check
+                        // if this leads to reset of prevMeasureArray
 
-                              // copy entries from curMeasureArray
-                              for (var n in curMeasureArray) {
-                                    prevMeasureArray[n] = curMeasureArray[n];
-                              }
-                              // reset curMeasureArray
-                              curMeasureArray = new Array();
+                        curMeasureNum++;
+
+                        // depending on operationMode: update prevMeasureArray
+                        switch (operationMode) {
+                              case typeNextMeasure:
+                                    prevMeasureArray = curMeasureArray;
+                                    break;
+
+                              case typeNumMeasures:
+                                    // delete all entries that are too old
+                                    var toDelete = [];
+                                    for (var n in prevMeasureArray) {
+                                          if (curMeasureNum - prevMeasureArray[n][1] > numMeasures) {
+                                                toDelete.push(n);
+                                          }
+                                    }
+                                    // now delete, otherwise iterating (n in prevMeasureArray) will not work
+                                    for (var x = 0; x < toDelete.length; x++)
+                                          delete prevMeasureArray[toDelete[x]];
+                                    // fall through!
+                              case typeEvent:
+                                    // copy entries from curMeasureArray
+                                    for (var n in curMeasureArray) {
+                                          prevMeasureArray[n] = curMeasureArray[n];
+                                    }
+                                    break;
                         }
+                        // reset curMeasureArray
+                        curMeasureArray = new Array();
                   }
 
                   // check for new key signature
@@ -438,11 +447,23 @@ MuseScore {
                   }
 
                   // check for rehearsal mark
-                  if (segment.elementAt(0)
-                    && segment.elementAt(0).type == Element.REHEARSAL_MARK) {
-                        console.log("found rehearsal mark");
+                  var annotations = segment.annotations;
+
+                  if (annotations && annotations.length > 0) {
+                        for (var i = 0; i < annotations.length; i++) {
+                              var mark = annotations[i];
+                              if (mark.type == Element.REHEARSAL_MARK) {
+                                    if (operationMode == typeEvent
+                                      && (eventTypes & eventRehearsalMark)) {
+                                          // reset array
+                                          prevMeasureArray = new Array();
+                                    }
+                                    console.log("found rehearsal mark");
+                              }
+                        }
                   }
 
+                  // scann music
                   for(var track=startTrack; track<endTrack; track++) {
                         // look for notes and grace notes
                         if(segment.elementAt(track) && segment.elementAt(track).type == Element.CHORD) {
@@ -472,8 +493,6 @@ MuseScore {
 
       function addAcc() {
             console.log("start add courtesy accidentals");
-
-            //curScore.startCmd();
 
              if (typeof curScore === 'undefined' || curScore == null) {
                    console.log("error: no score!");	     
@@ -528,15 +547,23 @@ MuseScore {
                   // next part
                   curStartStaff = curEndStaff;
             }
-
-            //curScore.doLayout();
-            //curScore.endCmd();
-
-            console.log("end add courtesy accidentals");
-            Qt.quit();
       }
 
       onRun: { 
-            //addAcc();
+            console.log("MuseScore Version = "+mscoreVersion);
+            console.log("MajorVersion = "+mscoreMajorVersion);
+            console.log("MinorVersion = "+mscoreMinorVersion);
+            console.log("UpdateVersion= "+mscoreUpdateVersion);
+
+            if (mscoreMajorVersion < 2
+             || (mscoreMajorVersion == 2 && mscoreMinorVersion < 1)) {
+                  // These two options don't work in the current release
+                  optDoubleBar.checked = false;
+                  optDoubleBar.enabled = false;
+                  optDoubleBar.opacity = 0.5;
+                  optFullRest.checked = false;
+                  optFullRest.enabled = false;
+                  optFullRest.opacity = 0.5;
+            }
       }
 }

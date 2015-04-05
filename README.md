@@ -12,3 +12,10 @@ addCourtesyAccidentals.qml to:
     property bool useBracket: true
 
 If you have comments and/or suggestions, please tell me.
+
+---
+
+There's a third plugin now: configCourtesyAccidentals.qml
+This plugin also adds courtesy accidentals but can be configured via a dialog
+window, that pops up when the plugin is called.
+It is currently under development.
