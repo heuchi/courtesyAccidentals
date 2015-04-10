@@ -422,6 +422,16 @@ MuseScore {
                                     }
                                     break;
                         }
+
+                        // if barline is double, might need to forget
+                        // previous mesaure...
+                        var barLine = segment.elementAt(keySigTrack);
+                        if (barLine.barLineType == BarLine.DOUBLE
+                          && operationMode==typeEvent
+                          && eventTypes & eventDoubleBar) {
+                              prevMeasureArray = new Array();
+                        }
+
                         // reset curMeasureArray
                         curMeasureArray = new Array();
                   }
@@ -589,5 +599,10 @@ MuseScore {
                   optFullRest.enabled = false;
                   optFullRest.opacity = 0.5;
             }
+            // BarLineType not yet accessible from plugins
+            // disable option
+            optDoubleBar.checked = false;
+            optDoubleBar.enabled = false;
+            optDoubleBar.opacity = 0.5;
       }
 }
