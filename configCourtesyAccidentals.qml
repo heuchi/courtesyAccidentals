@@ -1,5 +1,5 @@
 //==============================================
-//  courtesy accidentals v0.2
+//  courtesy accidentals v0.3
 //
 //  Copyright (C)2012-2015 Jörn Eichler (heuchi) 
 //
@@ -21,10 +21,11 @@ import QtQuick 2.2
 import QtQuick.Layouts 1.1
 import QtQuick.Controls 1.3
 import QtQuick.Dialogs 1.2
+import Qt.labs.settings 1.0
 import MuseScore 1.0
 
 MuseScore {
-      version: "0.2"
+      version: "0.3"
       description: "This plugin adds courtesy accidentals"
       menuPath: "Plugins.Accidentals.Configure Courtesy Accidentals"
 
@@ -54,6 +55,17 @@ MuseScore {
       }
 
       // Dialog window
+
+      function setUseBracketState() {
+             if (optDodecaphonic.checked == true) {
+                   // disable brackets
+                   optUseBracket.enabled = false;
+                   optUseBracket.opacity = 0.5;
+             } else {
+                   optUseBracket.enabled = true;
+                   optUseBracket.opacity = 1.0;
+             }
+      }
 
       Dialog {
             id: configDialog
@@ -87,6 +99,7 @@ MuseScore {
                                           text: "notes up to the next measure"
                                           checked: true
                                           exclusiveGroup: typeGroup
+                                          onClicked: { setUseBracketState(); }
                                     }
 
                                     Rectangle {height: 2}
@@ -95,6 +108,7 @@ MuseScore {
                                                 id: optNumMeasures
                                                 text: "notes up to the next"
                                                 exclusiveGroup: typeGroup
+                                                onClicked: { setUseBracketState(); }
                                           }
 
                                           SpinBox {
@@ -117,6 +131,7 @@ MuseScore {
                                                 id: optEvent
                                                 text: "notes up to the"
                                                 exclusiveGroup: typeGroup
+                                                onClicked: { setUseBracketState(); }
                                           }
 
                                           ColumnLayout {
@@ -148,6 +163,7 @@ MuseScore {
                                           id: optDodecaphonic
                                           text:"all notes (dodecaphonic style)"
                                           exclusiveGroup: typeGroup
+                                          onClicked: { setUseBracketState(); }
                                     }
                               }
                         }
@@ -160,6 +176,20 @@ MuseScore {
                               text: "Put accidentals in parenthesis"
                               checked: false
                               Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
+                        }
+
+                        // preserve user settings
+                        Settings {
+                                 property alias typeNextMeasure: optNextMeasure.checked
+                                 property alias typeNumMeasures: optNumMeasures.checked
+                                 property alias valueNumMeasure: valNumMeasures.value
+                                 property alias typeEvent: optEvent.checked
+                                 property alias typeFullRest: optFullRest.checked
+                                 property alias typeDoubleBar: optDoubleBar.checked
+                                 property alias typeRehearsalM: optRehearsalMark.checked
+                                 property alias typeEndScore: optEndScore.checked
+                                 property alias valueDodecaphonic: optDodecaphonic.checked
+                                 property alias valueUseBracket: optUseBracket.checked
                         }
                   }
                   // The buttons
@@ -298,8 +328,11 @@ MuseScore {
                         accidental = Accidental.SHARP2;
                   }
                   note.accidentalType = accidental;
-                  // put bracket on accidental
-                  note.accidental.hasBracket = useBracket;
+                  // put bracket on accidental if not in dodecaphonic mode
+                  if (operationMode != typeDodecaphonic
+                    && note.accidental) {
+                        note.accidental.hasBracket = useBracket;
+                  }
             }
       }
 
@@ -426,9 +459,9 @@ MuseScore {
                         // if barline is double, might need to forget
                         // previous mesaure...
                         var barLine = segment.elementAt(keySigTrack);
-                        if (barLine.barLineType == BarLine.DOUBLE
-                          && operationMode==typeEvent
-                          && eventTypes & eventDoubleBar) {
+                        if ((operationMode==typeEvent)
+                          && (eventTypes & eventDoubleBar)
+                          && (barLine.barLineType == BarLine.DOUBLE)) {
                               prevMeasureArray = new Array();
                         }
 
