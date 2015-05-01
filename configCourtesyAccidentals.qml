@@ -180,6 +180,7 @@ MuseScore {
 
                         // preserve user settings
                         Settings {
+                                 category: "CourtesyAccidentalPlugin"
                                  property alias typeNextMeasure: optNextMeasure.checked
                                  property alias typeNumMeasures: optNumMeasures.checked
                                  property alias valueNumMeasure: valNumMeasures.value
