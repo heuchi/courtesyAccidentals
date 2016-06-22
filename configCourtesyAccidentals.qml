@@ -490,22 +490,24 @@ MuseScore {
                         prevMeasureArray = new Array();
                   }
 
+                  // BUG: access to annotations is broken in 2.0.3
+                  //
                   // check for rehearsal mark
-                  var annotations = segment.annotations;
+                  //var annotations = segment.annotations;
 
-                  if (annotations && annotations.length > 0) {
-                        for (var i = 0; i < annotations.length; i++) {
-                              var mark = annotations[i];
-                              if (mark.type == Element.REHEARSAL_MARK) {
-                                    if (operationMode == typeEvent
-                                      && (eventTypes & eventRehearsalMark)) {
-                                          // reset array
-                                          prevMeasureArray = new Array();
-                                    }
-                                    console.log("found rehearsal mark");
-                              }
-                        }
-                  }
+                  //if (annotations && annotations.length > 0) {
+                  //      for (var i = 0; i < annotations.length; i++) {
+                  //            var mark = annotations[i];
+                  //            if (mark.type == Element.REHEARSAL_MARK) {
+                  //                  if (operationMode == typeEvent
+                  //                    && (eventTypes & eventRehearsalMark)) {
+                  //                        // reset array
+                  //                        prevMeasureArray = new Array();
+                  //                  }
+                  //                  console.log("found rehearsal mark");
+                  //            }
+                  //      }
+                  //}
 
                   // if we find a full measure rest, it needs to be in the whole part
                   var allTracksFullMeasureRest = true;
@@ -638,5 +640,11 @@ MuseScore {
             optDoubleBar.checked = false;
             optDoubleBar.enabled = false;
             optDoubleBar.opacity = 0.5;
+
+            // BUG: disable rehearsal mark option
+            //      since this is broken in MuseScore 2.0.3
+            optRehearsalMark.checked = false;
+            optRehearsalMark.enabled = false;
+            optRehearsalMark.opacity = 0.5;
       }
 }
