@@ -1,5 +1,5 @@
 //==============================================
-//  add courtesy accidentals v0.1
+//  remove courtesy accidentals v0.1
 //
 //  Copyright (C)2012-2019 Jörn Eichler (heuchi)
 //
@@ -22,14 +22,11 @@ import MuseScore 3.0
 
 MuseScore {
       version: "0.1"
-      description: "This plugin adds courtesy accidentals"
-      menuPath: "Plugins.Accidentals.Add Courtesy Accidentals"
-      requiresScore: true
+      description: "This plugin removes courtesy accidentals"
+      menuPath: "Plugins.Accidentals.Remove Courtesy Accidentals"
 
-      // configuration
-      // This has changed for MuseScore v3
-      // 0 = no bracket, 1 = parenthesis, 2 = bracket
-      property int useBracket: 0
+      //pluginType: "dock"
+      requiresScore: true
 
       // if nothing is selected process whole score
       property bool processAll: false
@@ -50,29 +47,6 @@ MuseScore {
             return(tpcNames[tpc+1]);
       }
 
-      // function getEndStaffOfPart
-      //
-      // return the first staff that does not belong to
-      // the part containing given start staff.
-
-      function getEndStaffOfPart(startStaff) {
-            var startTrack = startStaff * 4;
-            var parts = curScore.parts;
-
-            for(var i = 0; i < parts.length; i++) {
-                  var part = parts[i];
-
-                  if( (part.startTrack <= startTrack)
-                        && (part.endTrack > startTrack) ) {
-                        return(part.endTrack/4);
-                  }
-            }
-
-            // not found!
-            console.log("error: part for " + startStaff + " not found!");
-            Qt.quit();
-      }
-
       // function processNote
       //
       // for each measure we create a table that contains
@@ -87,12 +61,10 @@ MuseScore {
       //
       // curMeasureArray[<noteClass>] = <noteName>
 
-      function processNote(note,prevMeasureArray,curMeasureArray) {
+      function processNote(note,curMeasureArray,keySig) {
             var octave=Math.floor(note.pitch/12);
 
-            // use tpc1 instead of tpc for octave correction
-            // since this will also work for transposing instruments
-            // correct octave for Cb and Cbb
+             // correct octave for Cb and Cbb
             if(note.tpc1 == 7 || note.tpc1 == 0) {
                   octave++; // belongs to higher octave
             }
@@ -104,37 +76,83 @@ MuseScore {
             var noteName = tpcName(note.tpc);
             var noteClass = noteName.charAt(0)+octave;
 
-            // remember note for next measure
-            curMeasureArray[noteClass]=noteName;
+            // a tied back note never needs an accidental
+            if (note.tieBack != null) {
+                  if(note.accidental != null) {
+                        // security checks
+                        var thisPitch = note.pitch;
+                        var thisAcc = note.accidentalType;
 
-            // check if current note needs courtesy acc
-            if(typeof prevMeasureArray[noteClass] !== 'undefined') {
-                  if(prevMeasureArray[noteClass] != noteName) {
-                        // this note needs an accidental
-                        // if there's none present anyway
-                        if(note.accidental == null) {
-                              // calculate type of needed accidental
-                              var accidental=Accidental.NONE;
-                              if(note.tpc < 6) {
-                                    accidental = Accidental.FLAT2;
-                              } else if(note.tpc < 13) {
-                                    accidental = Accidental.FLAT;
-                              } else if(note.tpc < 20) {
-                                    accidental = Accidental.NATURAL;
-                              } else if(note.tpc < 27) {
-                                    accidental = Accidental.SHARP;
-                              } else {
-                                    accidental = Accidental.SHARP2;
-                              }
-                              note.accidentalType = accidental;
-                              // put bracket on accidental
-                              note.accidental.accidentalBracket = useBracket;
+                        // remove
+                        note.accidentalType = Accidental.NONE;
+
+                        // if pitch changed, we were wrong...
+                        if(note.pitch != thisPitch) {
+                              console.log("ERROR1: pitch of note changed!");
+                              //note.color = "#ff0000";
+                              note.accidentalType = thisAcc;
                         }
                   }
-                  // delete entry to make sure we don't create the
-                  // same accidental again in the same measure
-                  delete prevMeasureArray[noteClass];
+                  // if the tied back note is not part of
+                  // the current key sig, we need to remeber it.
+                  //if( ! (note.tpc > keySig+12 && note.tpc < keySig+20)) {
+                  //       curMeasureArray[noteClass]=noteName;
+                  //}
+
+                  // we're done for a tied back note.
+                 return;
             }
+
+            // check if current note needs acc
+            if(typeof curMeasureArray[noteClass] !== 'undefined') {
+                  // we have information on the previous note
+                  // in the same measure:
+                  // if this note is the same noteClass and noteName
+                  // it doesn't need an accidental
+                  if(curMeasureArray[noteClass] == noteName) {
+                        // remove accidental if present
+                        if(note.accidental != null) {
+                              // security checks
+                              var thisPitch = note.pitch;
+                              var thisAcc = note.accidentalType;
+
+                              // remove
+                              note.accidentalType = Accidental.NONE;
+
+                              // if pitch changed, we were wrong...
+                              if(note.pitch != thisPitch) {
+                                    console.log("ERROR2: pitch of note changed!");
+                                    //note.color = "#ff0000";
+                                    note.accidentalType = thisAcc;
+                              }
+                        }
+                  }
+            } else {
+                  // we don't have this note in the current measure
+                  // so it depends on the current key signature
+                  if(note.tpc > keySig+12 && note.tpc < keySig+20) {
+                        // we don't need an accidental in the current key sig
+                        // remove accidental if present
+                        if(note.accidental != null) {
+                              // security checks
+                              var thisPitch = note.pitch;
+                              var thisAcc = note.accidentalType;
+
+                              // remove
+                              note.accidentalType = Accidental.NONE;
+
+                              // if pitch changed, we were wrong...
+                              if(note.pitch != thisPitch) {
+                                    console.log("ERROR3: pitch of note changed!");
+                                    //note.color = "#ff0000";
+                                    note.accidentalType = thisAcc;
+                                    console.log("KeySig="+keySig+", tpc="+note.tpc);
+                              }
+                        }
+                  }
+            }
+
+            curMeasureArray[noteClass]=noteName;
       }
 
       // function processPart
@@ -150,61 +168,46 @@ MuseScore {
             if(processAll) {
                   // we need to reset track first, otherwise
                   // rewind(0) doesn't work correctly
-                  cursor.track=0;
+                  // we need to set staffIdx and voice to
+                  // get correct key signature.
+                  cursor.staffIdx = startTrack / 4;
+                  cursor.voice = 0;
                   cursor.rewind(0);
             } else {
                   cursor.rewind(1);
+                  // we need to set staffIdx and voice to
+                  // get correct key signature.
+                  cursor.staffIdx = startTrack / 4;
+                  cursor.voice = 0;
             }
 
             var segment = cursor.segment;
 
             // we use the cursor to know measure boundaries
+            // and to get the current key signature
+            var keySig = cursor.keySignature;
             cursor.nextMeasure();
 
             var curMeasureArray = new Array();
-            var prevMeasureArray = new Array();
 
             // we use a segment, because the cursor always proceeds to
-            // the next element in the given track and we don't know
-            // in which track the element is.
+	    // the next element in the given track and we don't know
+	    // in which track the element is.
             var inLastMeasure=false;
             while(segment && (processAll || segment.tick < endTick)) {
                   // check if still inside same measure
                   if(!inLastMeasure && !(segment.tick < cursor.tick)) {
                         // new measure
-                        prevMeasureArray = curMeasureArray;
                         curMeasureArray = new Array();
+                        keySig = cursor.keySignature;
                         if(!cursor.nextMeasure()) {
                               inLastMeasure=true;
                         }
                   }
 
-                  // we search for key signatures in first voice of
-                  // first staff:
-                  var keySigTrack = startTrack - (startTrack % 4);
-
                   for(var track=startTrack; track<endTrack; track++) {
-                        // check for new key signature
-                        // we only do this for the first track of the first staff
-                        // this means we miss the event of having two different
-                        // key signatures in different staves of the same part
-                        // This remains for future version if needed
-                        // we look inside this loop to make sure we don't miss
-                        // any segments. This could be improved for speed.
-		        // A KeySig that has generated == true was created by
-		        // layout, and is probably at the beginning of a new line
-		        // so we don't need it.
-
-                        if(segment.elementAt(keySigTrack)
-			     && segment.elementAt(keySigTrack).type == Element.KEYSIG
-			     && (!segment.elementAt(keySigTrack).generated)) {
-                              //console.log("found KEYSIG");
-                              // just forget the previous measure info
-                              // to not generate any courtesy accidentals
-                              prevMeasureArray = new Array();
-                        }
-                        // look for notes and grace notes
                         if(segment.elementAt(track) && segment.elementAt(track).type == Element.CHORD) {
+
                               // process graceNotes if present
                               if(segment.elementAt(track).graceNotes.length > 0) {
                                     var graceChords = segment.elementAt(track).graceNotes;
@@ -212,7 +215,7 @@ MuseScore {
                                     for(var j=0;j<graceChords.length;j++) {
                                           var notes = graceChords[j].notes;
                                           for(var i=0;i<notes.length;i++) {
-                                                processNote(notes[i],prevMeasureArray,curMeasureArray);
+                                                processNote(notes[i],curMeasureArray,keySig);
                                           }
                                     }
                               }
@@ -221,7 +224,7 @@ MuseScore {
                               var notes = segment.elementAt(track).notes;
 
                               for(var i=0;i<notes.length;i++) {
-                                    processNote(notes[i],prevMeasureArray,curMeasureArray);
+                                    processNote(notes[i],curMeasureArray,keySig);
                               }
                         }
                   }
@@ -229,8 +232,8 @@ MuseScore {
             }
       }
 
-      function addAcc() {
-            console.log("start add courtesy accidentals");
+      function removeAcc() {
+            console.log("start remove courtesy accidentals");
 
             //curScore.startCmd();
 
@@ -274,12 +277,8 @@ MuseScore {
             var curStartStaff = startStaff;
 
             while(curStartStaff < endStaff) {
-                  // find end staff for this part
-                  var curEndStaff = getEndStaffOfPart(curStartStaff);
-
-                  if(curEndStaff > endStaff) {
-                        curEndStaff = endStaff;
-                  }
+                  // to remove we need to parse staff by staff
+                  var curEndStaff = curStartStaff+1;
 
                   // do the work
                   processPart(cursor,endTick,curStartStaff*4,curEndStaff*4);
@@ -288,14 +287,14 @@ MuseScore {
                   curStartStaff = curEndStaff;
             }
 
-            //curScore.doLayout();
             //curScore.endCmd();
+            //curScore.doLayout();
 
-            console.log("end add courtesy accidentals");
+            console.log("end remove courtesy accidentals");
             Qt.quit();
       }
 
       onRun: {
-            addAcc();
+            removeAcc();
       }
 }
