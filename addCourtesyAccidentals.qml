@@ -18,6 +18,7 @@
 //==============================================
 
 import QtQuick 2.0
+import QtQuick.Dialogs 1.2
 import MuseScore 3.0
 
 MuseScore {
@@ -33,6 +34,14 @@ MuseScore {
 
       // if nothing is selected process whole score
       property bool processAll: false
+
+      MessageDialog {
+            id: versionError
+            visible: false
+            title: "Unsupported MuseScore Version"
+            text: "This plugin needs MuseScore v3.0.5 or higher"
+            onAccepted: { Qt.quit() }
+      }
 
       // function tpcName
       //
@@ -296,6 +305,11 @@ MuseScore {
       }
 
       onRun: {
-            addAcc();
+            if(mscoreMajorVersion == 3 && mscoreMinorVersion == 0
+            && mscoreUpdateVersion < 5) {
+                  versionError.open();
+            } else {
+                  addAcc();
+            }
       }
 }

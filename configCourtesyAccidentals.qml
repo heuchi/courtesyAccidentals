@@ -48,6 +48,14 @@ MuseScore {
       property var numMeasures;
       property var eventTypes;
 
+      MessageDialog {
+            id: versionError
+            visible: false
+            title: "Unsupported MuseScore Version"
+            text: "This plugin needs MuseScore v3.0.5 or higher"
+            onAccepted: { Qt.quit() }
+      }
+
       // Error dialog
 
       MessageDialog {
@@ -631,32 +639,21 @@ MuseScore {
             console.log("MinorVersion = "+mscoreMinorVersion);
             console.log("UpdateVersion= "+mscoreUpdateVersion);
 
-            if (mscoreMajorVersion < 2
-             || (mscoreMajorVersion == 2 && mscoreMinorVersion < 1)) {
-                  // These two options don't work in the current release
-                  optDoubleBar.checked = false;
-                  optDoubleBar.enabled = false;
-                  optDoubleBar.opacity = 0.5;
-                  optFullRest.checked = false;
-                  optFullRest.enabled = false;
-                  optFullRest.opacity = 0.5;
+            if (mscoreMajorVersion == 3 && mscoreMinorVersion == 0
+            && mscoreUpdateVersion < 5) {
+                  configDialog.visible = false;
+                  versionError.open();
             }
-            // BarLineType not yet accessible from plugins
-            // disable option
+
+            // These options don't work in MuseScore v3
             optDoubleBar.checked = false;
             optDoubleBar.enabled = false;
             optDoubleBar.opacity = 0.5;
-
-            // BUG: disable rehearsal mark option
-            //      since this is broken in MuseScore 2.0.3
-            optRehearsalMark.checked = false;
-            optRehearsalMark.enabled = false;
-            optRehearsalMark.opacity = 0.5;
-
-            // Full measure rests not yet accessible from plugins
-            // disable option
             optFullRest.checked = false;
             optFullRest.enabled = false;
             optFullRest.opacity = 0.5;
+            optRehearsalMark.checked = false;
+            optRehearsalMark.enabled = false;
+            optRehearsalMark.opacity = 0.5;
       }
 }
