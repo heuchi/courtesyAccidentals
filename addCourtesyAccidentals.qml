@@ -1,7 +1,7 @@
 //==============================================
-//  add courtesy accidentals v0.1
+//  add courtesy accidentals v1.0
 //
-//  Copyright (C)2012-2014 Jörn Eichler (heuchi) 
+//  Copyright (C)2012-2019 Jörn Eichler (heuchi)
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -18,116 +18,19 @@
 //==============================================
 
 import QtQuick 2.0
-import MuseScore 1.0
+import MuseScore 3.0
 
 MuseScore {
-      version: "0.1"
+      version: "1.0"
       description: "This plugin adds courtesy accidentals"
       menuPath: "Plugins.Accidentals.Add Courtesy Accidentals"
+      requiresScore: true
 
       // configuration
-      property bool useBracket: false
+      // This has changed for MuseScore v3
+      // 0 = no bracket, 1 = parenthesis, 2 = bracket
+      property int useBracket: 0
 
-      // Dialog window
-
-      //pluginType: "dock"
-      //dockArea: "left"      
-/*
-      width: 350
-      height: 150
-
-      Text {
-            id: titletext
-            height: 40
-            width: parent.width
-            anchors.top: parent.top
-            anchors.left: parent.left
-            font.italic: true
-            font.bold: true
-            font.pixelSize: 20
-            horizontalAlignment: Text.AlignHCenter
-            verticalAlignment: Text.AlignVCenter
-            text: "Courtesy Accidentals v0.1"
-      }
-
-       Row {     
-            id: optionsRow
-            anchors.top: titletext.bottom
-            anchors.left: parent.left
-            anchors.margins: 10
-            spacing: 20
-            width: parent.width
-            height: 110
-
-            Text {
-                  id: selecttext
-                  height: parent.height - parent.spacing
-                  //width: 50
-                  verticalAlignment: Text.AlignVCenter
-                  text: "Select action:"
-            }
-
-            Column {
-                  id: actionCol
-                  spacing: 10
-
-                  MouseArea {
-                        width: rect1.width
-                        height: rect1.height
-                        onClicked: {addAcc();}
-
-                        Rectangle {
-                              id: rect1
-                              width: opt1.contentWidth +10
-                              height: opt1.contentHeight +10
-                              border.width: 2
-                              border.color: "black"
-
-                              Text {
-                                    id: opt1
-                                    anchors.fill: parent
-                                    horizontalAlignment: Text.AlignHCenter
-                                    verticalAlignment: Text.AlignVCenter
-                                    text: "Add courtesy accidentals"
-                              }
-                        }
-                  }
-
-                  MouseArea {
-                        width: opt2.contentWidth
-                        height: opt2.contentHeight
-                        onClicked: {console.log("NOT IMPLEMENTED: opt2");}
-
-                        Text {
-                              id: opt2
-                              text: "Remove courtesy accidentals"
-                        }
-                  }
-
-                  MouseArea {
-                        width: rect3.width
-                        height: rect3.height
-                        onClicked: {Qt.quit();}
-
-                        Rectangle {
-                              id: rect3
-                              width: opt3.contentWidth +10
-                              height: opt3.contentHeight +10
-                              border.width: 2
-                              border.color: "black"
-
-                              Text {
-                                    id: opt3
-                                    anchors.fill: parent
-                                    horizontalAlignment: Text.AlignHCenter
-                                    verticalAlignment: Text.AlignVCenter
-                                    text: "Cancel"
-                              }
-                        }
-                  }
-            }
-      }
-*/
       // if nothing is selected process whole score
       property bool processAll: false
 
@@ -172,13 +75,13 @@ MuseScore {
 
       // function processNote
       //
-      // for each measure we create a table that contains 
+      // for each measure we create a table that contains
       // the actual 'noteName' of each 'noteClass'
       //
       // a 'noteClass' is the natural name of a space
       // or line of the staff and the octave:
       // C5, F6, B3 are 'noteClass'
-      //   
+      //
       // a 'noteName' would be C, F#, Bb for example
       // (we don't need the octave here)
       //
@@ -225,7 +128,7 @@ MuseScore {
                               }
                               note.accidentalType = accidental;
                               // put bracket on accidental
-                              note.accidental.hasBracket = useBracket;
+                              note.accidental.accidentalBracket = useBracket;
                         }
                   }
                   // delete entry to make sure we don't create the
@@ -240,14 +143,14 @@ MuseScore {
       // add courtesy accidentals where needed.
       //
       // We go through all tracks simultaneously, because we also want courtesy
-      // accidentals for notes across different staves when they are in the 
+      // accidentals for notes across different staves when they are in the
       // same octave and for notes of different voices in the same octave
 
       function processPart(cursor,endTick,startTrack,endTrack) {
             if(processAll) {
                   // we need to reset track first, otherwise
                   // rewind(0) doesn't work correctly
-                  cursor.track=0; 
+                  cursor.track=0;
                   cursor.rewind(0);
             } else {
                   cursor.rewind(1);
@@ -261,8 +164,8 @@ MuseScore {
             var curMeasureArray = new Array();
             var prevMeasureArray = new Array();
 
-            // we use a segment, because the cursor always proceeds to 
-            // the next element in the given track and we don't know 
+            // we use a segment, because the cursor always proceeds to
+            // the next element in the given track and we don't know
             // in which track the element is.
             var inLastMeasure=false;
             while(segment && (processAll || segment.tick < endTick)) {
@@ -291,12 +194,12 @@ MuseScore {
 		        // A KeySig that has generated == true was created by
 		        // layout, and is probably at the beginning of a new line
 		        // so we don't need it.
- 
-                        if(segment.elementAt(keySigTrack) 
+
+                        if(segment.elementAt(keySigTrack)
 			     && segment.elementAt(keySigTrack).type == Element.KEYSIG
 			     && (!segment.elementAt(keySigTrack).generated)) {
                               //console.log("found KEYSIG");
-                              // just forget the previous measure info 
+                              // just forget the previous measure info
                               // to not generate any courtesy accidentals
                               prevMeasureArray = new Array();
                         }
@@ -305,7 +208,7 @@ MuseScore {
                               // process graceNotes if present
                               if(segment.elementAt(track).graceNotes.length > 0) {
                                     var graceChords = segment.elementAt(track).graceNotes;
-                                    
+
                                     for(var j=0;j<graceChords.length;j++) {
                                           var notes = graceChords[j].notes;
                                           for(var i=0;i<notes.length;i++) {
@@ -316,7 +219,7 @@ MuseScore {
 
                               // process notes
                               var notes = segment.elementAt(track).notes;
-                              
+
                               for(var i=0;i<notes.length;i++) {
                                     processNote(notes[i],prevMeasureArray,curMeasureArray);
                               }
@@ -332,7 +235,7 @@ MuseScore {
             //curScore.startCmd();
 
              if (typeof curScore === 'undefined' || curScore == null) {
-                   console.log("error: no score!");	     
+                   console.log("error: no score!");
                    Qt.quit();
              }
 
@@ -340,7 +243,7 @@ MuseScore {
             var startStaff;
             var endStaff;
             var endTick;
-            
+
             var cursor = curScore.newCursor();
             cursor.rewind(1);
             if(!cursor.segment) {
@@ -361,7 +264,7 @@ MuseScore {
                   }
                   cursor.rewind(1);
                   console.log("Selection is: Staves("+startStaff+"-"+endStaff+") Ticks("+cursor.tick+"-"+endTick+")");
-            }      
+            }
 
             console.log("ProcessAll is "+processAll);
 
@@ -392,7 +295,7 @@ MuseScore {
             Qt.quit();
       }
 
-      onRun: { 
+      onRun: {
             addAcc();
       }
 }

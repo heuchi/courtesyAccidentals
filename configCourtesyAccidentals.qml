@@ -1,7 +1,7 @@
 //==============================================
-//  courtesy accidentals v0.3
+//  courtesy accidentals v1.0
 //
-//  Copyright (C)2012-2015 Jörn Eichler (heuchi) 
+//  Copyright (C)2012-2019 Jörn Eichler (heuchi) 
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -22,12 +22,14 @@ import QtQuick.Layouts 1.1
 import QtQuick.Controls 1.3
 import QtQuick.Dialogs 1.2
 import Qt.labs.settings 1.0
-import MuseScore 1.0
+import MuseScore 3.0
 
 MuseScore {
-      version: "0.3"
+      version: "1.0"
       description: "This plugin adds courtesy accidentals"
       menuPath: "Plugins.Accidentals.Configure Courtesy Accidentals"
+
+      requiresScore: true
 
       // configuration
       property bool useBracket: false
@@ -332,7 +334,11 @@ MuseScore {
                   // put bracket on accidental if not in dodecaphonic mode
                   if (operationMode != typeDodecaphonic
                     && note.accidental) {
-                        note.accidental.hasBracket = useBracket;
+                        if(useBracket) {
+                           note.accidental.accidentalBracket = 1;
+                        } else {
+                           note.accidental.accidentalBracket = 0;
+                        }
                   }
             }
       }
@@ -646,5 +652,11 @@ MuseScore {
             optRehearsalMark.checked = false;
             optRehearsalMark.enabled = false;
             optRehearsalMark.opacity = 0.5;
+
+            // Full measure rests not yet accessible from plugins
+            // disable option
+            optFullRest.checked = false;
+            optFullRest.enabled = false;
+            optFullRest.opacity = 0.5;
       }
 }

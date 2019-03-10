@@ -1,21 +1,11 @@
-courtesyAccidentals
-===================
+courtesyAccidentals for MuseScore v3
+====================================
 
-Two plugins for MuseScore version 2.0 to add or remove courtesy accidentals.
+Three plugins for MuseScore version 3.0.5 or higher to add or remove courtesy accidentals.
+* addCourtesyAccidentals will add accidentals only in the following measure
+* configCourtesyAccidentals can be configured via a dialog window
+* removeCourtesyAccidentals will remove any accidental, that is not needed according to standard rules.
 
-These plugins are still under development. If you use them, make sure to
-safe your work. There's no guarantee the plugins won't corrupt your score.
+**Please note that you need MuseScore v3.0.5 or higher for these plugins to work.**
 
-If you prefer courtesy accidentals to be in brackets change line 29 of
-addCourtesyAccidentals.qml to:
-
-    property bool useBracket: true
-
-If you have comments and/or suggestions, please tell me.
-
----
-
-There's a third plugin now: configCourtesyAccidentals.qml
-This plugin also adds courtesy accidentals but can be configured via a dialog
-window, that pops up when the plugin is called.
-It is currently under development.
+Because of limitations of the plugin framework, some of the custom options in the GUI version are still disabled for v3.

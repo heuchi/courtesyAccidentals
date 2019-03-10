@@ -1,7 +1,7 @@
 //==============================================
-//  remove courtesy accidentals v0.1
+//  remove courtesy accidentals v1.0
 //
-//  Copyright (C)2012-2014 Jörn Eichler (heuchi) 
+//  Copyright (C)2012-2019 Jörn Eichler (heuchi)
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -18,14 +18,15 @@
 //==============================================
 
 import QtQuick 2.0
-import MuseScore 1.0
+import MuseScore 3.0
 
 MuseScore {
-      version: "0.1"
+      version: "1.0"
       description: "This plugin removes courtesy accidentals"
       menuPath: "Plugins.Accidentals.Remove Courtesy Accidentals"
 
       //pluginType: "dock"
+      requiresScore: true
 
       // if nothing is selected process whole score
       property bool processAll: false
@@ -48,13 +49,13 @@ MuseScore {
 
       // function processNote
       //
-      // for each measure we create a table that contains 
+      // for each measure we create a table that contains
       // the actual 'noteName' of each 'noteClass'
       //
       // a 'noteClass' is the natural name of a space
       // or line of the staff and the octave:
       // C5, F6, B3 are 'noteClass'
-      //   
+      //
       // a 'noteName' would be C, F#, Bb for example
       // (we don't need the octave here)
       //
@@ -62,7 +63,7 @@ MuseScore {
 
       function processNote(note,curMeasureArray,keySig) {
             var octave=Math.floor(note.pitch/12);
-           
+
              // correct octave for Cb and Cbb
             if(note.tpc1 == 7 || note.tpc1 == 0) {
                   octave++; // belongs to higher octave
@@ -104,7 +105,7 @@ MuseScore {
 
             // check if current note needs acc
             if(typeof curMeasureArray[noteClass] !== 'undefined') {
-                  // we have information on the previous note 
+                  // we have information on the previous note
                   // in the same measure:
                   // if this note is the same noteClass and noteName
                   // it doesn't need an accidental
@@ -149,7 +150,7 @@ MuseScore {
                               }
                         }
                   }
-            }                        
+            }
 
             curMeasureArray[noteClass]=noteName;
       }
@@ -160,7 +161,7 @@ MuseScore {
       // add courtesy accidentals where needed.
       //
       // We go through all tracks simultaneously, because we also want courtesy
-      // accidentals for notes across different staves when they are in the 
+      // accidentals for notes across different staves when they are in the
       // same octave and for notes of different voices in the same octave
 
       function processPart(cursor,endTick,startTrack,endTrack) {
@@ -170,7 +171,7 @@ MuseScore {
                   // we need to set staffIdx and voice to
                   // get correct key signature.
                   cursor.staffIdx = startTrack / 4;
-                  cursor.voice = 0; 
+                  cursor.voice = 0;
                   cursor.rewind(0);
             } else {
                   cursor.rewind(1);
@@ -189,8 +190,8 @@ MuseScore {
 
             var curMeasureArray = new Array();
 
-            // we use a segment, because the cursor always proceeds to 
-	    // the next element in the given track and we don't know 
+            // we use a segment, because the cursor always proceeds to
+	    // the next element in the given track and we don't know
 	    // in which track the element is.
             var inLastMeasure=false;
             while(segment && (processAll || segment.tick < endTick)) {
@@ -206,11 +207,11 @@ MuseScore {
 
                   for(var track=startTrack; track<endTrack; track++) {
                         if(segment.elementAt(track) && segment.elementAt(track).type == Element.CHORD) {
-                              
+
                               // process graceNotes if present
                               if(segment.elementAt(track).graceNotes.length > 0) {
                                     var graceChords = segment.elementAt(track).graceNotes;
-                                    
+
                                     for(var j=0;j<graceChords.length;j++) {
                                           var notes = graceChords[j].notes;
                                           for(var i=0;i<notes.length;i++) {
@@ -221,7 +222,7 @@ MuseScore {
 
                               // process notes
                               var notes = segment.elementAt(track).notes;
-                              
+
                               for(var i=0;i<notes.length;i++) {
                                     processNote(notes[i],curMeasureArray,keySig);
                               }
@@ -237,7 +238,7 @@ MuseScore {
             //curScore.startCmd();
 
              if (typeof curScore === 'undefined' || curScore == null) {
-                   console.log("error: no score!");	     
+                   console.log("error: no score!");
                    Qt.quit();
              }
 
@@ -245,7 +246,7 @@ MuseScore {
             var startStaff;
             var endStaff;
             var endTick;
-            
+
             var cursor = curScore.newCursor();
             cursor.rewind(1);
             if(!cursor.segment) {
@@ -266,7 +267,7 @@ MuseScore {
                   }
                   cursor.rewind(1);
                   console.log("Selection is: Staves("+startStaff+"-"+endStaff+") Ticks("+cursor.tick+"-"+endTick+")");
-            }      
+            }
 
             console.log("ProcessAll is "+processAll);
 
@@ -293,7 +294,7 @@ MuseScore {
             Qt.quit();
       }
 
-      onRun: { 
+      onRun: {
             removeAcc();
       }
 }
